@@ -39,7 +39,7 @@
 //! let error_map = nv_flip::flip(&ref_image, &test_image, nv_flip::DEFAULT_PIXELS_PER_DEGREE);
 //!
 //! // We can now visualize the error map using a LUT that maps the error value to a color.
-//! let visualized = error_map.apply_color_lut(&nv_flip::FlipImageRgb8::new_magma_lut());
+//! let visualized = error_map.apply_color_lut(&nv_flip::magma_lut());
 //!
 //! // Finally we can the final image into an `image` crate image and save it.
 //! let image = image::RgbImage::from_raw(
@@ -313,7 +313,7 @@ mod tests {
 
         let error_map = flip(&reference_image, &test_image, DEFAULT_PIXELS_PER_DEGREE);
 
-        let magma_lut = FlipImageRgb8::new_magma_lut();
+        let magma_lut = magma_lut();
         let color = error_map.apply_color_lut(&magma_lut);
 
         let image =

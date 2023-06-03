@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  check-msrv:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Windows
+          - name: Windows x86_64
+            os: windows-2022
+
+          # MacOS
+          - name: MacOS x86_64
+            os: macos-12
+
+          # Linux
+          - name: Linux x86_64
+            os: ubuntu-22.04
+
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v3
+
+      - name: clippy
+        shell: bash
+        run: cargo clippy
+
+      - name: test
+        shell: bash
+        run: cargo test
