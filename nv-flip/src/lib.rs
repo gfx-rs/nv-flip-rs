@@ -66,6 +66,8 @@
 //!
 //! [ꟻLIP]: https://github.com/NVlabs/flip
 
+use std::marker::PhantomData;
+
 pub use nv_flip_sys::{pixels_per_degree, DEFAULT_PIXELS_PER_DEGREE};
 
 /// 2D FLIP image that is accessed as Rgb8.
@@ -286,6 +288,152 @@ pub fn flip(
         );
     }
     error_map
+}
+
+pub struct FlipImageHistogram<'a> {
+    inner: *mut nv_flip_sys::FlipImageHistogramRef,
+    _phantom: PhantomData<&'a ()>,
+}
+impl<'a> FlipImageHistogram<'a> {
+    pub fn bucket_size(&self) -> usize {
+        unsafe { nv_flip_sys::flip_image_histogram_ref_get_bucket_size(self.inner) }
+    }
+
+    pub fn bucket_id_min(&self) -> usize {
+        unsafe { nv_flip_sys::flip_image_histogram_ref_get_bucket_id_min(self.inner) }
+    }
+
+    pub fn bucket_id_max(&self) -> usize {
+        unsafe { nv_flip_sys::flip_image_histogram_ref_get_bucket_id_max(self.inner) }
+    }
+
+    pub fn bucket_value(&self, bucket_id: usize) -> usize {
+        // TODO: bounds checking
+        unsafe { nv_flip_sys::flip_image_histogram_ref_get_bucket_value(self.inner, bucket_id) }
+    }
+
+    pub fn size(&self) -> usize {
+        unsafe { nv_flip_sys::flip_image_histogram_ref_size(self.inner) }
+    }
+
+    pub fn min_value(&self) -> f32 {
+        unsafe { nv_flip_sys::flip_image_histogram_ref_get_min_value(self.inner) }
+    }
+
+    pub fn max_value(&self) -> f32 {
+        unsafe { nv_flip_sys::flip_image_histogram_ref_get_max_value(self.inner) }
+    }
+
+    pub fn bucket_step(&self) -> f32 {
+        unsafe { nv_flip_sys::flip_image_histogram_ref_bucket_step(self.inner) }
+    }
+
+    pub fn clear(&mut self) {
+        unsafe {
+            nv_flip_sys::flip_image_histogram_ref_clear(self.inner);
+        }
+    }
+
+    pub fn resize(&mut self, bucket_size: usize) {
+        unsafe {
+            nv_flip_sys::flip_image_histogram_ref_resize(self.inner, bucket_size);
+        }
+    }
+
+    pub fn value_bucket_id(&self, value: f32) -> usize {
+        unsafe { nv_flip_sys::flip_image_histogram_ref_value_bucket_id(self.inner, value) }
+    }
+
+    pub fn include_value(&mut self, value: f32, count: usize) {
+        unsafe {
+            nv_flip_sys::flip_image_histogram_ref_inc_value(self.inner, value, count);
+        }
+    }
+
+    pub fn include_image(&mut self, image: &FlipImageFloat) {
+        unsafe {
+            nv_flip_sys::flip_image_histogram_ref_inc_image(self.inner, image.inner);
+        }
+    }
+}
+
+impl Drop for FlipImageHistogram<'_> {
+    fn drop(&mut self) {
+        unsafe {
+            nv_flip_sys::flip_image_histogram_ref_free(self.inner);
+        }
+    }
+}
+
+pub struct FlipImagePool {
+    inner: *mut nv_flip_sys::FlipImagePool,
+}
+
+impl FlipImagePool {
+    pub fn new() -> Self {
+        Self::with_buckets(100)
+    }
+
+    pub fn with_buckets(bucket_count: usize) -> Self {
+        let inner = unsafe { nv_flip_sys::flip_image_pool_new(bucket_count) };
+        assert!(!inner.is_null());
+        Self { inner }
+    }
+
+    pub fn histogram(&mut self) -> FlipImageHistogram<'_> {
+        let inner = unsafe { nv_flip_sys::flip_image_pool_get_histogram(self.inner) };
+        assert!(!inner.is_null());
+        FlipImageHistogram {
+            inner,
+            _phantom: PhantomData,
+        }
+    }
+
+    pub fn min_value(&self) -> f32 {
+        unsafe { nv_flip_sys::flip_image_pool_get_min_value(self.inner) }
+    }
+
+    pub fn max_value(&self) -> f32 {
+        unsafe { nv_flip_sys::flip_image_pool_get_max_value(self.inner) }
+    }
+
+    pub fn mean(&self) -> f32 {
+        unsafe { nv_flip_sys::flip_image_pool_get_mean(self.inner) }
+    }
+
+    pub fn get_weighted_percentile(&self, percentile: f64) -> f64 {
+        unsafe { nv_flip_sys::flip_image_pool_get_weighted_percentile(self.inner, percentile) }
+    }
+
+    pub fn get_percentile(&mut self, percentile: f32, weighted: bool) -> f32 {
+        unsafe { nv_flip_sys::flip_image_pool_get_percentile(self.inner, percentile, weighted) }
+    }
+
+    pub fn update_with_image(&mut self, image: &FlipImageFloat) {
+        unsafe {
+            nv_flip_sys::flip_image_pool_update_image(self.inner, image.inner);
+        }
+    }
+
+    pub fn clear(&mut self) {
+        unsafe {
+            nv_flip_sys::flip_image_pool_clear(self.inner);
+        }
+    }
+}
+
+impl Default for FlipImagePool {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl Drop for FlipImagePool {
+    fn drop(&mut self) {
+        unsafe {
+            nv_flip_sys::flip_image_pool_free(self.inner);
+        }
+    }
 }
 
 #[cfg(test)]

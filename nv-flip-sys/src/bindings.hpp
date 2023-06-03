@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <stdlib.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,33 +24,35 @@ extern "C" {
 
     void flip_image_float_copy_float_to_color3(FlipImageFloat* error_map, FlipImageColor3* output);
 
-    struct FlipImageHistogram;
+    struct FlipImageHistogramRef;
 
-    FlipImageHistogram* flip_image_histogram_new(size_t buckets, float min_value, float max_value);
-    size_t flip_image_histogram_get_bucket_size(FlipImageHistogram const* histogram);
-    size_t flip_image_histogram_get_bucket_id_min(FlipImageHistogram const* histogram);
-    size_t flip_image_histogram_get_bucket_id_max(FlipImageHistogram const* histogram);
-    size_t flip_image_histogram_get_bucket_value(FlipImageHistogram const* histogram, size_t bucket_id);
-    size_t flip_image_histogram_size(FlipImageHistogram const* histogram);
-    float flip_image_histogram_get_min_value(FlipImageHistogram const* histogram);
-    float flip_image_histogram_get_max_value(FlipImageHistogram const* histogram);
-    float flip_image_histogram_bucket_step(FlipImageHistogram const* histogram);
-    void flip_image_histogram_clear(FlipImageHistogram* histogram);
-    void flip_image_histogram_resize(FlipImageHistogram* histogram, size_t buckets);
-    void flip_image_histogram_value_bucket_id(FlipImageHistogram* histogram, size_t buckets);
-    void flip_image_histogram_inc_value(FlipImageHistogram* histogram, float value, size_t count);
-    void flip_image_histogram_inc_image(FlipImageHistogram* histogram, FlipImageFloat* image);
-    void flip_image_histogram_free(FlipImageHistogram* histogram);
+    FlipImageHistogramRef* flip_image_histogram_ref_new(size_t buckets, float min_value, float max_value);
+    size_t flip_image_histogram_ref_get_bucket_size(FlipImageHistogramRef const* histogram);
+    size_t flip_image_histogram_ref_get_bucket_id_min(FlipImageHistogramRef const* histogram);
+    size_t flip_image_histogram_ref_get_bucket_id_max(FlipImageHistogramRef const* histogram);
+    size_t flip_image_histogram_ref_get_bucket_value(FlipImageHistogramRef const* histogram, size_t bucket_id);
+    size_t flip_image_histogram_ref_size(FlipImageHistogramRef const* histogram);
+    float flip_image_histogram_ref_get_min_value(FlipImageHistogramRef const* histogram);
+    float flip_image_histogram_ref_get_max_value(FlipImageHistogramRef const* histogram);
+    float flip_image_histogram_ref_bucket_step(FlipImageHistogramRef const* histogram);
+    void flip_image_histogram_ref_clear(FlipImageHistogramRef* histogram);
+    void flip_image_histogram_ref_resize(FlipImageHistogramRef* histogram, size_t buckets);
+    size_t flip_image_histogram_ref_value_bucket_id(FlipImageHistogramRef* histogram, float buckets);
+    void flip_image_histogram_ref_inc_value(FlipImageHistogramRef* histogram, float value, size_t count);
+    void flip_image_histogram_ref_inc_image(FlipImageHistogramRef* histogram, FlipImageFloat const* image);
+    void flip_image_histogram_ref_free(FlipImageHistogramRef* histogram);
 
     struct FlipImagePool;
 
     FlipImagePool* flip_image_pool_new(size_t buckets);
+    FlipImageHistogramRef* flip_image_pool_get_histogram(FlipImagePool* pool);
     float flip_image_pool_get_min_value(FlipImagePool const* pool);
     float flip_image_pool_get_max_value(FlipImagePool const* pool);
-    float flip_image_pool_get_mean_value(FlipImagePool const* pool);
+    float flip_image_pool_get_mean(FlipImagePool const* pool);
     double flip_image_pool_get_weighted_percentile(FlipImagePool const* pool, double percentile);
     float flip_image_pool_get_percentile(FlipImagePool* pool, float percentile, bool weighted);
     void flip_image_pool_update_image(FlipImagePool* pool, FlipImageFloat* image);
+    void flip_image_pool_clear(FlipImagePool* pool);
     void flip_image_pool_free(FlipImagePool* pool);
 
 

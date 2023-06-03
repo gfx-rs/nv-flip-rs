@@ -94,6 +94,58 @@ extern "C" {
         output->inner.copyFloat2Color3(error_map->inner);
     }
 
+    struct FlipImageHistogramRef {
+        histogram<float>& inner;
+    };
+
+    size_t flip_image_histogram_ref_get_bucket_size(FlipImageHistogramRef const* histogram) {
+        return histogram->inner.getBucketSize();
+    }
+    size_t flip_image_histogram_ref_get_bucket_id_min(FlipImageHistogramRef const* histogram) {
+        return histogram->inner.getBucketIdMin();
+    }
+    size_t flip_image_histogram_ref_get_bucket_id_max(FlipImageHistogramRef const* histogram) {
+        return histogram->inner.getBucketIdMax();
+    }
+    size_t flip_image_histogram_ref_get_bucket_value(FlipImageHistogramRef const* histogram, size_t bucket_id) {
+        return histogram->inner.getBucketValue(bucket_id);
+    }
+    size_t flip_image_histogram_ref_size(FlipImageHistogramRef const* histogram) {
+        return histogram->inner.size();
+    }
+    float flip_image_histogram_ref_get_min_value(FlipImageHistogramRef const* histogram) {
+        return histogram->inner.getMinValue();
+    }
+    float flip_image_histogram_ref_get_max_value(FlipImageHistogramRef const* histogram) {
+        return histogram->inner.getMaxValue();
+    }
+    float flip_image_histogram_ref_bucket_step(FlipImageHistogramRef const* histogram) {
+        return histogram->inner.getBucketStep();
+    }
+    void flip_image_histogram_ref_clear(FlipImageHistogramRef* histogram) {
+        histogram->inner.clear();
+    }
+    void flip_image_histogram_ref_resize(FlipImageHistogramRef* histogram, size_t buckets) {
+        histogram->inner.resize(buckets);
+    }
+    size_t flip_image_histogram_ref_value_bucket_id(FlipImageHistogramRef* histogram, float buckets) {
+        histogram->inner.valueBucketId(buckets);
+    }
+    void flip_image_histogram_ref_inc_value(FlipImageHistogramRef* histogram, float value, size_t count) {
+        histogram->inner.inc(value, count);
+    }
+    void flip_image_histogram_ref_inc_image(FlipImageHistogramRef* histogram, FlipImageFloat const* image) {
+        for (uint32_t y = 0; y < image->inner.getHeight(); y++) {
+            for (uint32_t x = 0; x < image->inner.getWidth(); x++) {
+                auto value = image->inner.get(x, y);
+                histogram->inner.inc(value, 1);
+            }
+        }
+    }
+    void flip_image_histogram_ref_free(FlipImageHistogramRef* histogram) {
+        delete histogram;
+    }
+
     struct FlipImagePool {
         pooling<float> inner;
     };
@@ -101,13 +153,16 @@ extern "C" {
     FlipImagePool* flip_image_pool_new(size_t buckets) {
         return new FlipImagePool { pooling<float>(buckets) };
     }
+    FlipImageHistogramRef* flip_image_pool_get_histogram(FlipImagePool* pool) {
+        return new FlipImageHistogramRef { pool->inner.getHistogram() };
+    }
     float flip_image_pool_get_min_value(FlipImagePool const* pool) {
         return pool->inner.getMinValue();
     }
     float flip_image_pool_get_max_value(FlipImagePool const* pool) {
         return pool->inner.getMaxValue();
     }
-    float flip_image_pool_get_mean_value(FlipImagePool const* pool) {
+    float flip_image_pool_get_mean(FlipImagePool const* pool) {
         return pool->inner.getMean();
     }
     double flip_image_pool_get_weighted_percentile(FlipImagePool const* pool, double percentile) {
@@ -123,8 +178,10 @@ extern "C" {
             }
         }
     }
+    void flip_image_pool_clear(FlipImagePool* pool) {
+        pool->inner.clear();
+    }
     void flip_image_pool_free(FlipImagePool* pool) {
         delete pool;
     }
-
 }
