@@ -1,0 +1,3 @@
+[submodule "flip-sys/extern"]
+	path = flip-sys/extern
+	url = https://github.com/NVlabs/flip.git

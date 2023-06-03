@@ -1,0 +1,15 @@
+[package]
+name = "flip-sys"
+version = "0.1.0"
+edition = "2021"
+license = "(MIT OR Apache-2.0 OR Zlib) AND BSD-3-Clause"
+include = [
+    "src/",
+    "extern/cpp/common",
+    "extern/cpp/CPP",
+]
+
+[dependencies]
+
+[build-dependencies]
+cc = "1"
