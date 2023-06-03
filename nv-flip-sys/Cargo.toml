@@ -1,5 +1,5 @@
 [package]
-name = "flip-sys"
+name = "nv-flip-sys"
 version = "0.1.0"
 edition = "2021"
 license = "(MIT OR Apache-2.0 OR Zlib) AND BSD-3-Clause"
@@ -10,6 +10,9 @@ include = [
 ]
 
 [dependencies]
+
+[dev-dependencies]
+image = { version = "0.24", features = ["png"]}
 
 [build-dependencies]
 cc = "1"

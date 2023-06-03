@@ -1,0 +1,87 @@
+include!("bindings.rs");
+
+pub fn calculate_pixels_per_degree(distance: f32, resolution_x: f32, monitor_width: f32) -> f32 {
+    distance * (resolution_x / monitor_width) * (std::f32::consts::PI / 180.0)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn creation_deletion() {
+        unsafe {
+            let image = flip_image_color3_new(10, 10, std::ptr::null_mut());
+            assert!(!image.is_null());
+            flip_image_color3_free(image);
+        }
+    }
+
+    #[test]
+    fn creation_with_data_and_deletion() {
+        let data = vec![0u8; 10 * 10 * 3];
+        unsafe {
+            let image = flip_image_color3_new(10, 10, data.as_ptr());
+            assert!(!image.is_null());
+            flip_image_color3_free(image);
+        }
+    }
+
+    #[test]
+    fn end_to_end() {
+        let ref_image = image::open("../etc/tree-ref.png")
+            .unwrap()
+            .into_rgb8();
+        let test_image = image::open("../etc/tree-test.png")
+            .unwrap()
+            .into_rgb8();
+
+        let ref_flip = unsafe {
+            flip_image_color3_new(ref_image.width(), ref_image.height(), ref_image.as_ptr())
+        };
+        let test_flip = unsafe {
+            flip_image_color3_new(test_image.width(), test_image.height(), test_image.as_ptr())
+        };
+
+        let error_map = unsafe {
+            flip_image_float_new(ref_image.width(), ref_image.height(), std::ptr::null())
+        };
+
+        unsafe {
+            flip_image_float_flip(error_map, ref_flip, test_flip, 67.0);
+        }
+
+        let output_flip = unsafe {
+            flip_image_color3_new(ref_image.width(), ref_image.height(), std::ptr::null())
+        };
+
+        let magma_flip = unsafe {
+            flip_image_color3_magma_map()
+        };
+
+        unsafe {
+            flip_image_float_copy_float_to_color3(error_map, output_flip);
+            flip_image_color3_color_map(output_flip, error_map, magma_flip);
+        };
+
+        let mut output_image = image::RgbImage::new(ref_image.width(), ref_image.height());
+
+        unsafe {
+            flip_image_color3_get_data(output_flip, output_image.as_mut_ptr());
+        }
+
+        unsafe {
+            flip_image_color3_free(ref_flip);
+            flip_image_color3_free(test_flip);
+            flip_image_color3_free(output_flip);
+            flip_image_color3_free(magma_flip);
+            flip_image_float_free(error_map);
+        }
+
+        let sample = image::open("../etc/tree-comparison-cli.png")
+            .unwrap()
+            .into_rgb8();
+
+        assert_eq!(sample, output_image);
+    }
+}

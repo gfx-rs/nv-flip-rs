@@ -1,1 +1,1 @@
-bindgen flip-sys/src/bindings.hpp --allowlist-function 'flip_image.*' -o flip-sys/src/bindings.rs
+bindgen nv-flip-sys/src/bindings.hpp --allowlist-function 'flip_image.*' -o nv-flip-sys/src/bindings.rs

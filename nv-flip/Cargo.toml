@@ -1,0 +1,13 @@
+[package]
+name = "nv-flip"
+version = "0.1.0"
+edition = "2021"
+license = "MIT OR Apache-2.0 OR Zlib"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+nv-flip-sys = { version = "0.1.0", path = "../nv-flip-sys" }
+
+[dev-dependencies]
+image = { version = "0.24", features = ["png"]}
