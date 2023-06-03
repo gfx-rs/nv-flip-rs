@@ -12,20 +12,22 @@ extern "C" {
     };
 
     FlipImageColor3* flip_image_color3_new(uint32_t width, uint32_t height, uint8_t const* data) {
-        auto image = new FlipImageColor3 { FLIP::image<FLIP::color3>(width, height) };
         if (data) {
+            auto image = new FlipImageColor3 { FLIP::image<FLIP::color3>(width, height) };
             for (uint32_t y = 0; y < height; y++) {
                 for (uint32_t x = 0; x < width; x++) {
                     image->inner.set(x, y, FLIP::color3(
-                        float(data[0]) / 255.0,
-                        float(data[1]) / 255.0,
-                        float(data[2]) / 255.0
+                        float(data[0]) / 255.0f,
+                        float(data[1]) / 255.0f,
+                        float(data[2]) / 255.0f
                     ));
                     data += 3;
                 }
             }
+            return image;
+        } else {
+            return new FlipImageColor3 { FLIP::image<FLIP::color3>(width, height, FLIP::color3(0.0f, 0.0f, 0.0f)) };
         }
-        return image;
     }
 
     inline static float fClamp(float value) { return std::max(0.0f, std::min(1.0f, value)); }
@@ -55,16 +57,18 @@ extern "C" {
     }
 
     FlipImageFloat* flip_image_float_new(uint32_t width, uint32_t height, float const* data) {
-        auto image = new FlipImageFloat { FLIP::image<float>(width, height) };
         if (data) {
+            auto image = new FlipImageFloat { FLIP::image<float>(width, height) };
             for (uint32_t y = 0; y < height; y++) {
                 for (uint32_t x = 0; x < width; x++) {
                     image->inner.set(x, y, *data);
                     data += 1;
                 }
             }
+            return image;
+        } else {
+            return new FlipImageFloat { FLIP::image<float>(width, height, 0.0f) };
         }
-        return image;
     }
 
     void flip_image_float_get_data(FlipImageFloat const* image, float* data) {

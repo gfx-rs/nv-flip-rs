@@ -1,8 +1,13 @@
 [package]
 name = "nv-flip-sys"
 version = "0.1.0"
+authors = ["the gfx-rs developers"]
 edition = "2021"
+description = "FFI bindings to nvidia's FLIP image comparison library"
+readme = "../README.md"
+repository = "https://github.com/gfx-rs/nv-flip-rs"
 license = "(MIT OR Apache-2.0 OR Zlib) AND BSD-3-Clause"
+links = "nv-flip"
 include = [
     "src/",
     "extern/cpp/common",

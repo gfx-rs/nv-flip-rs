@@ -1,11 +1,12 @@
 include!("bindings.rs");
 
-/// Default configuration for pixels per degree. Corresponds to _roughly_
-/// a 31.6" monitor at 3840x2160 resolution, viewed from 70cm away.
-/// 
+/// Default configuration for pixels per degree.
+///
+/// Corresponds to _roughly_ a 31.6" monitor at 3840x2160 resolution, viewed from 70cm away.
+///
 /// This value is how you adjust the sensitivity of the comparison.
 /// Use [`pixels_per_degree`] to compute a custom value for your situation.
-/// 
+///
 /// ```rust
 /// let computed = nv_flip::pixels_per_degree(0.7, 3840.0, 0.7);
 /// assert!((computed - nv_flip::DEFAULT_PIXELS_PER_DEGREE).abs() < 0.05);
@@ -13,13 +14,13 @@ include!("bindings.rs");
 pub const DEFAULT_PIXELS_PER_DEGREE: f32 = 67.0;
 
 /// Computes the pixels per degree of arc given a monitor configuration.
-/// 
+///
 /// - `distance` - Distance from the monitor in meters.
 /// - `resolution_x` - Horizontal resolution of the monitor in pixels.
 /// - `monitor_width` - Width of the monitor in meters.
-/// 
+///
 /// This value is how you adjust the sensitivity of the comparison.
-/// 
+///
 /// If you don't care, use [`DEFAULT_PIXELS_PER_DEGREE`].
 pub fn pixels_per_degree(distance: f32, resolution_x: f32, monitor_width: f32) -> f32 {
     distance * (resolution_x / monitor_width) * (std::f32::consts::PI / 180.0)
