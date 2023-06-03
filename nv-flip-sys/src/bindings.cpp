@@ -1,3 +1,4 @@
+#include <cmath> // std::sqrt, std::exp
 #include "FLIP.h"
 
 #include "bindings.hpp"
