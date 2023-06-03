@@ -94,4 +94,37 @@ extern "C" {
         output->inner.copyFloat2Color3(error_map->inner);
     }
 
+    struct FlipImagePool {
+        pooling<float> inner;
+    };
+
+    FlipImagePool* flip_image_pool_new(size_t buckets) {
+        return new FlipImagePool { pooling<float>(buckets) };
+    }
+    float flip_image_pool_get_min_value(FlipImagePool const* pool) {
+        return pool->inner.getMinValue();
+    }
+    float flip_image_pool_get_max_value(FlipImagePool const* pool) {
+        return pool->inner.getMaxValue();
+    }
+    float flip_image_pool_get_mean_value(FlipImagePool const* pool) {
+        return pool->inner.getMean();
+    }
+    double flip_image_pool_get_weighted_percentile(FlipImagePool const* pool, double percentile) {
+        return pool->inner.getWeightedPercentile(percentile);
+    }
+    float flip_image_pool_get_percentile(FlipImagePool* pool, float percentile, bool weighted) {
+        return pool->inner.getPercentile(percentile, weighted);
+    }
+    void flip_image_pool_update_image(FlipImagePool* pool, FlipImageFloat* image) {
+        for (uint32_t y = 0; y < image->inner.getHeight(); y++) {
+            for (uint32_t x = 0; x < image->inner.getWidth(); x++) {
+                pool->inner.update(x, y, image->inner.get(x, y));
+            }
+        }
+    }
+    void flip_image_pool_free(FlipImagePool* pool) {
+        delete pool;
+    }
+
 }

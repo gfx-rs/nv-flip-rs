@@ -69,6 +69,12 @@ mod tests {
             flip_image_float_flip(error_map, ref_flip, test_flip, 67.0);
         }
 
+        let histogram = unsafe { flip_image_pool_new(256) };
+        unsafe { flip_image_pool_update_image(histogram, error_map) }
+        println!("{:.6}", unsafe {
+            flip_image_pool_get_percentile(histogram, 0.75, true)
+        });
+
         let output_flip = unsafe {
             flip_image_color3_new(ref_image.width(), ref_image.height(), std::ptr::null())
         };
@@ -92,6 +98,7 @@ mod tests {
             flip_image_color3_free(output_flip);
             flip_image_color3_free(magma_flip);
             flip_image_float_free(error_map);
+            flip_image_pool_free(histogram);
         }
 
         let sample = image::open("../etc/tree-comparison-cli.png")

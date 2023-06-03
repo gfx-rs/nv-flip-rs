@@ -52,3 +52,103 @@ extern "C" {
         output: *mut FlipImageColor3,
     );
 }
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct FlipImageHistogram {
+    _unused: [u8; 0],
+}
+extern "C" {
+    pub fn flip_image_histogram_new(
+        buckets: usize,
+        min_value: f32,
+        max_value: f32,
+    ) -> *mut FlipImageHistogram;
+}
+extern "C" {
+    pub fn flip_image_histogram_get_bucket_size(histogram: *const FlipImageHistogram) -> usize;
+}
+extern "C" {
+    pub fn flip_image_histogram_get_bucket_id_min(histogram: *const FlipImageHistogram) -> usize;
+}
+extern "C" {
+    pub fn flip_image_histogram_get_bucket_id_max(histogram: *const FlipImageHistogram) -> usize;
+}
+extern "C" {
+    pub fn flip_image_histogram_get_bucket_value(
+        histogram: *const FlipImageHistogram,
+        bucket_id: usize,
+    ) -> usize;
+}
+extern "C" {
+    pub fn flip_image_histogram_size(histogram: *const FlipImageHistogram) -> usize;
+}
+extern "C" {
+    pub fn flip_image_histogram_get_min_value(histogram: *const FlipImageHistogram) -> f32;
+}
+extern "C" {
+    pub fn flip_image_histogram_get_max_value(histogram: *const FlipImageHistogram) -> f32;
+}
+extern "C" {
+    pub fn flip_image_histogram_bucket_step(histogram: *const FlipImageHistogram) -> f32;
+}
+extern "C" {
+    pub fn flip_image_histogram_clear(histogram: *mut FlipImageHistogram);
+}
+extern "C" {
+    pub fn flip_image_histogram_resize(histogram: *mut FlipImageHistogram, buckets: usize);
+}
+extern "C" {
+    pub fn flip_image_histogram_value_bucket_id(histogram: *mut FlipImageHistogram, buckets: usize);
+}
+extern "C" {
+    pub fn flip_image_histogram_inc_value(
+        histogram: *mut FlipImageHistogram,
+        value: f32,
+        count: usize,
+    );
+}
+extern "C" {
+    pub fn flip_image_histogram_inc_image(
+        histogram: *mut FlipImageHistogram,
+        image: *mut FlipImageFloat,
+    );
+}
+extern "C" {
+    pub fn flip_image_histogram_free(histogram: *mut FlipImageHistogram);
+}
+#[repr(C)]
+#[derive(Debug, Copy, Clone)]
+pub struct FlipImagePool {
+    _unused: [u8; 0],
+}
+extern "C" {
+    pub fn flip_image_pool_new(buckets: usize) -> *mut FlipImagePool;
+}
+extern "C" {
+    pub fn flip_image_pool_get_min_value(pool: *const FlipImagePool) -> f32;
+}
+extern "C" {
+    pub fn flip_image_pool_get_max_value(pool: *const FlipImagePool) -> f32;
+}
+extern "C" {
+    pub fn flip_image_pool_get_mean_value(pool: *const FlipImagePool) -> f32;
+}
+extern "C" {
+    pub fn flip_image_pool_get_weighted_percentile(
+        pool: *const FlipImagePool,
+        percentile: f64,
+    ) -> f64;
+}
+extern "C" {
+    pub fn flip_image_pool_get_percentile(
+        pool: *mut FlipImagePool,
+        percentile: f32,
+        weighted: bool,
+    ) -> f32;
+}
+extern "C" {
+    pub fn flip_image_pool_update_image(pool: *mut FlipImagePool, image: *mut FlipImageFloat);
+}
+extern "C" {
+    pub fn flip_image_pool_free(pool: *mut FlipImagePool);
+}
