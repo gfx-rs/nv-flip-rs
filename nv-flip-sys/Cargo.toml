@@ -12,7 +12,8 @@ include = [
 [dependencies]
 
 [dev-dependencies]
-image = { version = "0.24", features = ["png"]}
+nv-flip = { version = "0.1", path = "../nv-flip" }
+image = { version = "0.24", default-features = false, features = ["png"]}
 
 [build-dependencies]
 cc = "1"

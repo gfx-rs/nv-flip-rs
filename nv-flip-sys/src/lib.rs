@@ -1,6 +1,27 @@
 include!("bindings.rs");
 
-pub fn calculate_pixels_per_degree(distance: f32, resolution_x: f32, monitor_width: f32) -> f32 {
+/// Default configuration for pixels per degree. Corresponds to _roughly_
+/// a 31.6" monitor at 3840x2160 resolution, viewed from 70cm away.
+/// 
+/// This value is how you adjust the sensitivity of the comparison.
+/// Use [`pixels_per_degree`] to compute a custom value for your situation.
+/// 
+/// ```rust
+/// let computed = nv_flip::pixels_per_degree(0.7, 3840.0, 0.7);
+/// assert!((computed - nv_flip::DEFAULT_PIXELS_PER_DEGREE).abs() < 0.05);
+/// ```
+pub const DEFAULT_PIXELS_PER_DEGREE: f32 = 67.0;
+
+/// Computes the pixels per degree of arc given a monitor configuration.
+/// 
+/// - `distance` - Distance from the monitor in meters.
+/// - `resolution_x` - Horizontal resolution of the monitor in pixels.
+/// - `monitor_width` - Width of the monitor in meters.
+/// 
+/// This value is how you adjust the sensitivity of the comparison.
+/// 
+/// If you don't care, use [`DEFAULT_PIXELS_PER_DEGREE`].
+pub fn pixels_per_degree(distance: f32, resolution_x: f32, monitor_width: f32) -> f32 {
     distance * (resolution_x / monitor_width) * (std::f32::consts::PI / 180.0)
 }
 
@@ -29,12 +50,8 @@ mod tests {
 
     #[test]
     fn end_to_end() {
-        let ref_image = image::open("../etc/tree-ref.png")
-            .unwrap()
-            .into_rgb8();
-        let test_image = image::open("../etc/tree-test.png")
-            .unwrap()
-            .into_rgb8();
+        let ref_image = image::open("../etc/tree-ref.png").unwrap().into_rgb8();
+        let test_image = image::open("../etc/tree-test.png").unwrap().into_rgb8();
 
         let ref_flip = unsafe {
             flip_image_color3_new(ref_image.width(), ref_image.height(), ref_image.as_ptr())
@@ -55,9 +72,7 @@ mod tests {
             flip_image_color3_new(ref_image.width(), ref_image.height(), std::ptr::null())
         };
 
-        let magma_flip = unsafe {
-            flip_image_color3_magma_map()
-        };
+        let magma_flip = unsafe { flip_image_color3_magma_map() };
 
         unsafe {
             flip_image_float_copy_float_to_color3(error_map, output_flip);
