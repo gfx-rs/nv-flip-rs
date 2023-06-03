@@ -4,6 +4,9 @@ on:
   push:
   pull_request:
 
+env:
+  RUSTDOCFLAGS: -Dwarnings
+
 jobs:
   check-msrv:
     strategy:
@@ -42,8 +45,14 @@ jobs:
 
       - name: clippy
         shell: bash
-        run: cargo clippy
+        run: cargo clippy -D warnings
 
       - name: test
         shell: bash
         run: cargo test
+
+      - name: doc
+        shell: bash
+        run: cargo doc
+
+

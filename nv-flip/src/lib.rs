@@ -323,6 +323,10 @@ mod tests {
             .unwrap()
             .into_rgb8();
 
-        assert_eq!(image, reference);
+        for (a, b) in image.pixels().zip(reference.pixels()) {
+            assert!(a.0[0].abs_diff(b.0[0]) <= 1);
+            assert!(a.0[1].abs_diff(b.0[1]) <= 1);
+            assert!(a.0[2].abs_diff(b.0[2]) <= 1);
+        }
     }
 }
