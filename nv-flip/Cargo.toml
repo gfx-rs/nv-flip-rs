@@ -2,7 +2,7 @@
 name = "nv-flip"
 version = "0.1.0"
 edition = "2021"
-description = "Nvidia's FLIP image comparison library"
+description = "High-Level bindings to Nvidia Labs's ꟻLIP image comparison and error visualization library"
 readme = "../README.md"
 repository = "https://github.com/gfx-rs/nv-flip-rs"
 license = "MIT OR Apache-2.0 OR Zlib"

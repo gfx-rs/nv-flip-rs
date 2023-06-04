@@ -1,6 +1,6 @@
 # nv-flip
 
-Bindings to NVIDIA's [ꟻLIP] image comparison library.
+bindings to Nvidia Labs's [ꟻLIP] image comparison and error visualization library.
 
 This library allows you to visualize and reason about the human-noticable differences
 between rendered images. Especially when comparing images that are noisy or other small
