@@ -22,6 +22,13 @@ Per Keep a Changelog there are 6 main categories of changes:
 
 ## Unreleased
 
+## v0.1.1
+
+Release 2023-06-04
+
+#### Fixed
+- Minor documentation fixes
+
 ## v0.1.0
 
 Released 2023-06-03

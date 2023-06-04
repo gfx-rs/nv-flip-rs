@@ -1,6 +1,6 @@
 [package]
 name = "nv-flip-sys"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["the gfx-rs developers"]
 edition = "2021"
 description = "FFI bindings to Nvidia Labs's ꟻLIP image comparison and error visualization library"
