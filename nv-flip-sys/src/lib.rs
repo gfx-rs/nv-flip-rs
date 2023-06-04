@@ -8,8 +8,9 @@ include!("bindings.rs");
 /// Use [`pixels_per_degree`] to compute a custom value for your situation.
 ///
 /// ```rust
+/// # use float_eq::assert_float_eq;
 /// let computed = nv_flip::pixels_per_degree(0.7, 3840.0, 0.7);
-/// assert!((computed - nv_flip::DEFAULT_PIXELS_PER_DEGREE).abs() < 0.05);
+/// assert_float_eq!(computed, nv_flip::DEFAULT_PIXELS_PER_DEGREE, abs <= 0.05);
 /// ```
 pub const DEFAULT_PIXELS_PER_DEGREE: f32 = 67.0;
 
