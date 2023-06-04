@@ -14,6 +14,9 @@ extern "C" {
     pub fn flip_image_color3_new(width: u32, height: u32, data: *const u8) -> *mut FlipImageColor3;
 }
 extern "C" {
+    pub fn flip_image_color3_clone(image: *mut FlipImageColor3) -> *mut FlipImageColor3;
+}
+extern "C" {
     pub fn flip_image_color3_get_data(image: *const FlipImageColor3, data: *mut u8);
 }
 extern "C" {
@@ -31,6 +34,9 @@ extern "C" {
 }
 extern "C" {
     pub fn flip_image_float_new(width: u32, height: u32, data: *const f32) -> *mut FlipImageFloat;
+}
+extern "C" {
+    pub fn flip_image_float_clone(image: *mut FlipImageFloat) -> *mut FlipImageFloat;
 }
 extern "C" {
     pub fn flip_image_float_get_data(image: *const FlipImageFloat, data: *mut f32);
@@ -83,7 +89,7 @@ extern "C" {
     pub fn flip_image_histogram_ref_get_bucket_value(
         histogram: *const FlipImageHistogramRef,
         bucket_id: usize,
-    ) -> usize;
+    ) -> f32;
 }
 extern "C" {
     pub fn flip_image_histogram_ref_size(histogram: *const FlipImageHistogramRef) -> usize;
@@ -159,7 +165,7 @@ extern "C" {
     ) -> f32;
 }
 extern "C" {
-    pub fn flip_image_pool_update_image(pool: *mut FlipImagePool, image: *mut FlipImageFloat);
+    pub fn flip_image_pool_update_image(pool: *mut FlipImagePool, image: *const FlipImageFloat);
 }
 extern "C" {
     pub fn flip_image_pool_clear(pool: *mut FlipImagePool);

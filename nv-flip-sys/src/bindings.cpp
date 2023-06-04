@@ -31,6 +31,10 @@ extern "C" {
         }
     }
 
+    FlipImageColor3* flip_image_color3_clone(FlipImageColor3* image) {
+        return new FlipImageColor3 { FLIP::image<FLIP::color3>(image->inner) };
+    }
+
     inline static float fClamp(float value) { return std::max(0.0f, std::min(1.0f, value)); }
 
     void flip_image_color3_get_data(FlipImageColor3 const* image, uint8_t* data) {
@@ -72,6 +76,10 @@ extern "C" {
         }
     }
 
+    FlipImageFloat* flip_image_float_clone(FlipImageFloat* image) {
+        return new FlipImageFloat { FLIP::image<float>(image->inner) };
+    }
+
     void flip_image_float_get_data(FlipImageFloat const* image, float* data) {
         for (uint32_t y = 0; y < image->inner.getHeight(); y++) {
             for (uint32_t x = 0; x < image->inner.getWidth(); x++) {
@@ -107,7 +115,7 @@ extern "C" {
     size_t flip_image_histogram_ref_get_bucket_id_max(FlipImageHistogramRef const* histogram) {
         return histogram->inner.getBucketIdMax();
     }
-    size_t flip_image_histogram_ref_get_bucket_value(FlipImageHistogramRef const* histogram, size_t bucket_id) {
+    float flip_image_histogram_ref_get_bucket_value(FlipImageHistogramRef const* histogram, size_t bucket_id) {
         return histogram->inner.getBucketValue(bucket_id);
     }
     size_t flip_image_histogram_ref_size(FlipImageHistogramRef const* histogram) {
@@ -129,7 +137,7 @@ extern "C" {
         histogram->inner.resize(buckets);
     }
     size_t flip_image_histogram_ref_value_bucket_id(FlipImageHistogramRef* histogram, float buckets) {
-        histogram->inner.valueBucketId(buckets);
+        return histogram->inner.valueBucketId(buckets);
     }
     void flip_image_histogram_ref_inc_value(FlipImageHistogramRef* histogram, float value, size_t count) {
         histogram->inner.inc(value, count);
@@ -171,7 +179,7 @@ extern "C" {
     float flip_image_pool_get_percentile(FlipImagePool* pool, float percentile, bool weighted) {
         return pool->inner.getPercentile(percentile, weighted);
     }
-    void flip_image_pool_update_image(FlipImagePool* pool, FlipImageFloat* image) {
+    void flip_image_pool_update_image(FlipImagePool* pool, FlipImageFloat const* image) {
         for (uint32_t y = 0; y < image->inner.getHeight(); y++) {
             for (uint32_t x = 0; x < image->inner.getWidth(); x++) {
                 pool->inner.update(x, y, image->inner.get(x, y));

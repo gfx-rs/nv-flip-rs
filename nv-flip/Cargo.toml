@@ -14,3 +14,4 @@ nv-flip-sys = { version = "0.1.0", path = "../nv-flip-sys" }
 
 [dev-dependencies]
 image = { version = "0.24", default-features = false, features = ["png"]}
+float_eq = "1"

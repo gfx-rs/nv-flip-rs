@@ -36,7 +36,7 @@
 //! // The last parameter is the number of pixels per degree of visual angle. This is used
 //! // to determine the size of imperfections that can be seen. See the `pixels_per_degree`
 //! // for more information. By default this value is 67.0.
-//! let error_map = nv_flip::flip(&ref_image, &test_image, nv_flip::DEFAULT_PIXELS_PER_DEGREE);
+//! let error_map = nv_flip::flip(ref_image, test_image, nv_flip::DEFAULT_PIXELS_PER_DEGREE);
 //!
 //! // We can now visualize the error map using a LUT that maps the error value to a color.
 //! let visualized = error_map.apply_color_lut(&nv_flip::magma_lut());
@@ -48,6 +48,21 @@
 //!     visualized.to_vec()
 //! ).unwrap();
 //! # let _ = image;
+//!
+//! // We can get statistics about the error map by using their "Pool" type,
+//! // which is essentially a weighted histogram.
+//! let mut pool = nv_flip::FlipPool::from_image(&error_map);
+//!
+//! // These are the same statistics shown by the command line.
+//! //
+//! // The paper's writers recommend that, if you are to use a single number to
+//! // represent the error, they recommend the mean.
+//! println!("Mean: {}", pool.mean());
+//! println!("Weighted median: {}", pool.get_percentile(0.5, true));
+//! println!("1st weighted quartile: {}", pool.get_percentile(0.25, true));
+//! println!("3rd weighted quartile: {}", pool.get_percentile(0.75, true));
+//! println!("Min: {}", pool.min_value());
+//! println!("Max: {}", pool.max_value());
 //! ```
 //! The result of this example looks like this:
 //!
@@ -56,7 +71,6 @@
 //! | Reference | ⠀⠀Test⠀⠀ | ⠀Result⠀ |
 //! |:---------:|:---------:|:---------:|
 //! | ![comp](https://raw.githubusercontent.com/gfx-rs/nv-flip-rs/trunk/etc/tree-ref.png) | ![comp](https://raw.githubusercontent.com/gfx-rs/nv-flip-rs/trunk/etc/tree-test.png)  | ![comp](https://raw.githubusercontent.com/gfx-rs/nv-flip-rs/trunk/etc/tree-comparison-cli.png) |
-//!
 //!
 //! # License
 //!
@@ -81,6 +95,18 @@ pub struct FlipImageRgb8 {
 
 unsafe impl Send for FlipImageRgb8 {}
 unsafe impl Sync for FlipImageRgb8 {}
+
+impl Clone for FlipImageRgb8 {
+    fn clone(&self) -> Self {
+        let inner = unsafe { nv_flip_sys::flip_image_color3_clone(self.inner) };
+        assert!(!inner.is_null());
+        Self {
+            inner,
+            width: self.width,
+            height: self.height,
+        }
+    }
+}
 
 impl FlipImageRgb8 {
     /// Create a new image with the given dimensions and zeroed contents.
@@ -153,6 +179,19 @@ pub struct FlipImageFloat {
 
 unsafe impl Send for FlipImageFloat {}
 unsafe impl Sync for FlipImageFloat {}
+
+impl Clone for FlipImageFloat {
+    fn clone(&self) -> Self {
+        // SAFETY: The clone function does not mutate the image, despite taking a mutable pointer.
+        let inner = unsafe { nv_flip_sys::flip_image_float_clone(self.inner) };
+        assert!(!inner.is_null());
+        Self {
+            inner,
+            width: self.width,
+            height: self.height,
+        }
+    }
+}
 
 impl FlipImageFloat {
     /// Create a new image with the given dimensions and zeroed contents.
@@ -259,12 +298,15 @@ pub fn magma_lut() -> FlipImageRgb8 {
 /// The pixels_per_degree parameter is used to determine the sensitivity to differences. See the
 /// documentation for [`DEFAULT_PIXELS_PER_DEGREE`] and [`pixels_per_degree`] for more information.
 ///
+/// Consumes both images as the algorithm uses them for scratch space. If you want to re-use
+/// the images, clone them while passing them in.
+///
 /// # Panics
 ///
 /// - If the images are not the same size.
 pub fn flip(
-    reference_image: &FlipImageRgb8,
-    test_image: &FlipImageRgb8,
+    reference_image: FlipImageRgb8,
+    test_image: FlipImageRgb8,
     pixels_per_degree: f32,
 ) -> FlipImageFloat {
     assert_eq!(
@@ -290,11 +332,11 @@ pub fn flip(
     error_map
 }
 
-pub struct FlipImageHistogram<'a> {
+pub struct FlipHistogram<'a> {
     inner: *mut nv_flip_sys::FlipImageHistogramRef,
     _phantom: PhantomData<&'a ()>,
 }
-impl<'a> FlipImageHistogram<'a> {
+impl<'a> FlipHistogram<'a> {
     pub fn bucket_size(&self) -> usize {
         unsafe { nv_flip_sys::flip_image_histogram_ref_get_bucket_size(self.inner) }
     }
@@ -307,12 +349,12 @@ impl<'a> FlipImageHistogram<'a> {
         unsafe { nv_flip_sys::flip_image_histogram_ref_get_bucket_id_max(self.inner) }
     }
 
-    pub fn bucket_value(&self, bucket_id: usize) -> usize {
-        // TODO: bounds checking
+    pub fn bucket_value(&self, bucket_id: usize) -> f32 {
+        assert!(bucket_id < self.bucket_count());
         unsafe { nv_flip_sys::flip_image_histogram_ref_get_bucket_value(self.inner, bucket_id) }
     }
 
-    pub fn size(&self) -> usize {
+    pub fn bucket_count(&self) -> usize {
         unsafe { nv_flip_sys::flip_image_histogram_ref_size(self.inner) }
     }
 
@@ -357,7 +399,7 @@ impl<'a> FlipImageHistogram<'a> {
     }
 }
 
-impl Drop for FlipImageHistogram<'_> {
+impl Drop for FlipHistogram<'_> {
     fn drop(&mut self) {
         unsafe {
             nv_flip_sys::flip_image_histogram_ref_free(self.inner);
@@ -365,11 +407,11 @@ impl Drop for FlipImageHistogram<'_> {
     }
 }
 
-pub struct FlipImagePool {
+pub struct FlipPool {
     inner: *mut nv_flip_sys::FlipImagePool,
 }
 
-impl FlipImagePool {
+impl FlipPool {
     pub fn new() -> Self {
         Self::with_buckets(100)
     }
@@ -380,10 +422,16 @@ impl FlipImagePool {
         Self { inner }
     }
 
-    pub fn histogram(&mut self) -> FlipImageHistogram<'_> {
+    pub fn from_image(image: &FlipImageFloat) -> Self {
+        let mut pool = Self::new();
+        pool.update_with_image(image);
+        pool
+    }
+
+    pub fn histogram(&mut self) -> FlipHistogram<'_> {
         let inner = unsafe { nv_flip_sys::flip_image_pool_get_histogram(self.inner) };
         assert!(!inner.is_null());
-        FlipImageHistogram {
+        FlipHistogram {
             inner,
             _phantom: PhantomData,
         }
@@ -422,13 +470,13 @@ impl FlipImagePool {
     }
 }
 
-impl Default for FlipImagePool {
+impl Default for FlipPool {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl Drop for FlipImagePool {
+impl Drop for FlipPool {
     fn drop(&mut self) {
         unsafe {
             nv_flip_sys::flip_image_pool_free(self.inner);
@@ -439,6 +487,7 @@ impl Drop for FlipImagePool {
 #[cfg(test)]
 mod tests {
     pub use super::*;
+    use float_eq::assert_float_eq;
 
     #[test]
     fn zeroed_init() {
@@ -459,7 +508,9 @@ mod tests {
         let test_image =
             FlipImageRgb8::with_data(test_image.width(), test_image.height(), &test_image);
 
-        let error_map = flip(&reference_image, &test_image, DEFAULT_PIXELS_PER_DEGREE);
+        let error_map = flip(reference_image, test_image, DEFAULT_PIXELS_PER_DEGREE);
+
+        let mut pool = FlipPool::from_image(&error_map);
 
         let magma_lut = magma_lut();
         let color = error_map.apply_color_lut(&magma_lut);
@@ -476,5 +527,33 @@ mod tests {
             assert!(a.0[1].abs_diff(b.0[1]) <= 3);
             assert!(a.0[2].abs_diff(b.0[2]) <= 3);
         }
+
+        // These numbers pulled directly from the command line tool
+        const TOLERENCE: f32 = 0.000_001;
+        assert_float_eq!(pool.mean(), 0.133285, abs <= TOLERENCE);
+        assert_float_eq!(pool.get_percentile(0.25, true), 0.184924, abs <= TOLERENCE);
+        assert_float_eq!(pool.get_percentile(0.50, true), 0.333241, abs <= TOLERENCE);
+        assert_float_eq!(pool.get_percentile(0.75, true), 0.503441, abs <= TOLERENCE);
+        assert_float_eq!(pool.min_value(), 0.000000, abs <= TOLERENCE);
+        assert_float_eq!(pool.max_value(), 0.983044, abs <= TOLERENCE);
+        assert_float_eq!(
+            pool.get_weighted_percentile(0.25),
+            0.184586,
+            abs <= TOLERENCE as f64
+        );
+        assert_float_eq!(
+            pool.get_weighted_percentile(0.50),
+            0.333096,
+            abs <= TOLERENCE as f64
+        );
+        assert_float_eq!(
+            pool.get_weighted_percentile(0.75),
+            0.503230,
+            abs <= TOLERENCE as f64
+        );
+
+        let histogram = pool.histogram();
+        assert_float_eq!(histogram.min_value(), 0.0, abs <= TOLERENCE);
+        assert_float_eq!(histogram.max_value(), 1.0, abs <= TOLERENCE);
     }
 }
