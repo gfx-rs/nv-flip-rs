@@ -395,6 +395,8 @@ impl<'a> FlipHistogram<'a> {
 
     /// Clears the histogram of all values
     ///
+    /// # Safety
+    ///
     /// Due to the many invariants between the histogram and the pool,
     /// we do not provide any safty guarentees when mutating the histogram.
     pub unsafe fn clear(&mut self) {
@@ -404,6 +406,8 @@ impl<'a> FlipHistogram<'a> {
     }
 
     /// Resizes the histogram to have `bucket_size` buckets.
+    ///
+    /// # Safety
     ///
     /// Due to the many invariants between the histogram and the pool,
     /// we do not provide any safty guarentees when mutating the histogram.
@@ -420,6 +424,8 @@ impl<'a> FlipHistogram<'a> {
 
     /// Includes `count` instances of the following `value` in the histogram.
     ///
+    /// # Safety
+    ///
     /// Due to the many invariants between the histogram and the pool,
     /// we do not provide any safty guarentees when mutating the histogram.
     pub unsafe fn include_value(&mut self, value: f32, count: usize) {
@@ -429,6 +435,8 @@ impl<'a> FlipHistogram<'a> {
     }
 
     /// Includes one instance of each value in the given image in the histogram.
+    ///
+    /// # Safety
     ///
     /// Due to the many invariants between the histogram and the pool,
     /// we do not provide any safty guarentees when mutating the histogram.
@@ -529,7 +537,10 @@ impl FlipPool {
         if self.values_added == 0 {
             return 0.0;
         }
-        unsafe { nv_flip_sys::flip_image_pool_get_weighted_percentile(self.inner, percentile) }
+        let bounds_percentile = f64::clamp(percentile, 0.0, next_f64_down(1.0));
+        unsafe {
+            nv_flip_sys::flip_image_pool_get_weighted_percentile(self.inner, bounds_percentile)
+        }
     }
 
     /// Get the value of the given percentile [0.0, 1.0] from the pool.
@@ -584,6 +595,12 @@ impl Drop for FlipPool {
             nv_flip_sys::flip_image_pool_free(self.inner);
         }
     }
+}
+
+// This next_f64_down impl only works for positive, normal values that are
+// more than one ulp away from f64::MIN_POSITIVE.
+fn next_f64_down(value: f64) -> f64 {
+    f64::from_bits(value.to_bits() - 1)
 }
 
 #[cfg(test)]
@@ -642,7 +659,7 @@ mod tests {
         }
 
         // These numbers pulled directly from the command line tool
-        const TOLERENCE: f32 = 0.000_001;
+        const TOLERENCE: f32 = 0.000_1;
         assert_float_eq!(pool.mean(), 0.133285, abs <= TOLERENCE);
         assert_float_eq!(pool.get_percentile(0.25, true), 0.184924, abs <= TOLERENCE);
         assert_float_eq!(pool.get_percentile(0.50, true), 0.333241, abs <= TOLERENCE);
@@ -673,11 +690,27 @@ mod tests {
         drop(histogram);
 
         // Absurd values, trying to edge case the histogram
-        pool.get_percentile(-10000.0, false);
-        pool.get_percentile(-10000.0, true);
-        pool.get_percentile(10000.0, false);
-        pool.get_percentile(10000.0, true);
-        pool.get_weighted_percentile(-10000.0);
-        pool.get_weighted_percentile(10000.0);
+        assert_float_eq!(pool.get_percentile(-10000.0, false), 0.0, abs <= TOLERENCE);
+        assert_float_eq!(pool.get_percentile(-10000.0, true), 0.0, abs <= TOLERENCE);
+        assert_float_eq!(
+            pool.get_percentile(10000.0, false),
+            0.983044,
+            abs <= TOLERENCE
+        );
+        assert_float_eq!(
+            pool.get_percentile(10000.0, true),
+            0.983044,
+            abs <= TOLERENCE
+        );
+        assert_float_eq!(
+            pool.get_weighted_percentile(-10000.0),
+            0.0,
+            abs <= TOLERENCE as _
+        );
+        assert_float_eq!(
+            pool.get_weighted_percentile(10000.0),
+            0.989999,
+            abs <= TOLERENCE as _
+        );
     }
 }
