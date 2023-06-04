@@ -1,5 +1,9 @@
 #include <cmath> // std::sqrt, std::exp
-#include "FLIP.h"
+
+#include "sharedflip.h"
+#include "image.h"
+#include "pooling.h"
+#include "mapMagma.h"
 
 #include "bindings.hpp"
 

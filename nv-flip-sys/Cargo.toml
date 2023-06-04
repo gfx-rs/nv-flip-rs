@@ -10,14 +10,22 @@ license = "(MIT OR Apache-2.0 OR Zlib) AND BSD-3-Clause"
 links = "nv-flip"
 include = [
     "src/",
-    "extern/cpp/common",
-    "extern/cpp/CPP",
+    "extern/cpp/common/pooling.h",
+    "extern/cpp/common/mapMagma.h",
+    "extern/cpp/common/sharedflip.h",
+    "extern/cpp/common/stb_image.h",
+    "extern/cpp/common/stb_image_write.h",
+    "extern/cpp/common/tinyexr.h",
+    "extern/cpp/CPP/color.h",
+    "extern/cpp/CPP/image.h",
+    "extern/cpp/CPP/tensor.h",
+    "build.rs"
 ]
 
 [dependencies]
 
 [dev-dependencies]
-nv-flip = { version = "0.1", path = "../nv-flip" }
+nv-flip = { path = "../nv-flip" }
 image = { version = "0.24", default-features = false, features = ["png"]}
 
 [build-dependencies]
