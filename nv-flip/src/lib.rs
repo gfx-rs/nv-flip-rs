@@ -78,7 +78,10 @@
 //!
 //! The ꟻLIP library itself is licensed under the BSD-3-Clause license.
 //!
+//! The example images used are licensed under the [Unsplash License].
+//!
 //! [ꟻLIP]: https://github.com/NVlabs/flip
+//! [Unsplash License]: https://unsplash.com/license
 
 use std::marker::PhantomData;
 
@@ -332,67 +335,104 @@ pub fn flip(
     error_map
 }
 
+/// Bucket based histogram used internally by [`FlipPool`].
+///
+/// Generally you should not need to use this directly and any mutating
+/// operations are unsafe to prevent violating FlipPool invariants.
 pub struct FlipHistogram<'a> {
     inner: *mut nv_flip_sys::FlipImageHistogramRef,
     _phantom: PhantomData<&'a ()>,
 }
 impl<'a> FlipHistogram<'a> {
+    /// Returns the difference between the maximum and minimum bucket values.
     pub fn bucket_size(&self) -> usize {
         unsafe { nv_flip_sys::flip_image_histogram_ref_get_bucket_size(self.inner) }
     }
 
-    pub fn bucket_id_min(&self) -> usize {
-        unsafe { nv_flip_sys::flip_image_histogram_ref_get_bucket_id_min(self.inner) }
+    /// Returns the index of the lowest bucket currently in use.
+    ///
+    /// If no buckets are in use, returns None.
+    pub fn bucket_id_min(&self) -> Option<usize> {
+        let value = unsafe { nv_flip_sys::flip_image_histogram_ref_get_bucket_id_min(self.inner) };
+        if value == usize::MAX {
+            None
+        } else {
+            Some(value)
+        }
     }
 
+    /// Returns the index of the highest bucket currently in use.
+    ///
+    /// If no buckets are in use, returns 0.
     pub fn bucket_id_max(&self) -> usize {
         unsafe { nv_flip_sys::flip_image_histogram_ref_get_bucket_id_max(self.inner) }
     }
 
-    pub fn bucket_value(&self, bucket_id: usize) -> f32 {
+    /// Returns the amount of values contained within a given bucket.
+    ///
+    /// # Panics
+    ///
+    /// - If the bucket_id is out of bounds.
+    pub fn bucket_value_count(&self, bucket_id: usize) -> usize {
         assert!(bucket_id < self.bucket_count());
         unsafe { nv_flip_sys::flip_image_histogram_ref_get_bucket_value(self.inner, bucket_id) }
     }
 
+    /// Returns the amount of buckets in the histogram.
     pub fn bucket_count(&self) -> usize {
         unsafe { nv_flip_sys::flip_image_histogram_ref_size(self.inner) }
     }
 
-    pub fn min_value(&self) -> f32 {
+    /// Returns the smallest value the histogram can handle.
+    pub fn minimum_allowed_value(&self) -> f32 {
         unsafe { nv_flip_sys::flip_image_histogram_ref_get_min_value(self.inner) }
     }
 
-    pub fn max_value(&self) -> f32 {
+    /// Returns the largest value the histogram can handle.
+    pub fn maximum_allowed_value(&self) -> f32 {
         unsafe { nv_flip_sys::flip_image_histogram_ref_get_max_value(self.inner) }
     }
 
-    pub fn bucket_step(&self) -> f32 {
-        unsafe { nv_flip_sys::flip_image_histogram_ref_bucket_step(self.inner) }
-    }
-
-    pub fn clear(&mut self) {
+    /// Clears the histogram of all values
+    ///
+    /// Due to the many invariants between the histogram and the pool,
+    /// we do not provide any safty guarentees when mutating the histogram.
+    pub unsafe fn clear(&mut self) {
         unsafe {
             nv_flip_sys::flip_image_histogram_ref_clear(self.inner);
         }
     }
 
-    pub fn resize(&mut self, bucket_size: usize) {
+    /// Resizes the histogram to have `bucket_size` buckets.
+    ///
+    /// Due to the many invariants between the histogram and the pool,
+    /// we do not provide any safty guarentees when mutating the histogram.
+    pub unsafe fn resize(&mut self, bucket_size: usize) {
         unsafe {
             nv_flip_sys::flip_image_histogram_ref_resize(self.inner, bucket_size);
         }
     }
 
-    pub fn value_bucket_id(&self, value: f32) -> usize {
+    /// Returns which bucket a given value would fall into.
+    pub fn bucket_id(&self, value: f32) -> usize {
         unsafe { nv_flip_sys::flip_image_histogram_ref_value_bucket_id(self.inner, value) }
     }
 
-    pub fn include_value(&mut self, value: f32, count: usize) {
+    /// Includes `count` instances of the following `value` in the histogram.
+    ///
+    /// Due to the many invariants between the histogram and the pool,
+    /// we do not provide any safty guarentees when mutating the histogram.
+    pub unsafe fn include_value(&mut self, value: f32, count: usize) {
         unsafe {
             nv_flip_sys::flip_image_histogram_ref_inc_value(self.inner, value, count);
         }
     }
 
-    pub fn include_image(&mut self, image: &FlipImageFloat) {
+    /// Includes one instance of each value in the given image in the histogram.
+    ///
+    /// Due to the many invariants between the histogram and the pool,
+    /// we do not provide any safty guarentees when mutating the histogram.
+    pub unsafe fn include_image(&mut self, image: &FlipImageFloat) {
         unsafe {
             nv_flip_sys::flip_image_histogram_ref_inc_image(self.inner, image.inner);
         }
@@ -407,27 +447,38 @@ impl Drop for FlipHistogram<'_> {
     }
 }
 
+/// Histogram-like value pool for determining if error map has significant differences.
+///
+/// This is how you can programmatically determine if images count as different.
 pub struct FlipPool {
     inner: *mut nv_flip_sys::FlipImagePool,
+    values_added: usize,
 }
 
 impl FlipPool {
+    /// Creates a new pool with 100 buckets.
     pub fn new() -> Self {
         Self::with_buckets(100)
     }
 
+    /// Creates a new pool with the given amount of buckets.
     pub fn with_buckets(bucket_count: usize) -> Self {
         let inner = unsafe { nv_flip_sys::flip_image_pool_new(bucket_count) };
         assert!(!inner.is_null());
-        Self { inner }
+        Self {
+            inner,
+            values_added: 0,
+        }
     }
 
+    /// Creates a new pool and initializes the buckets with the values given image.
     pub fn from_image(image: &FlipImageFloat) -> Self {
         let mut pool = Self::new();
         pool.update_with_image(image);
         pool
     }
 
+    /// Accesses the internal histogram of the pool.
     pub fn histogram(&mut self) -> FlipHistogram<'_> {
         let inner = unsafe { nv_flip_sys::flip_image_pool_get_histogram(self.inner) };
         assert!(!inner.is_null());
@@ -437,36 +488,87 @@ impl FlipPool {
         }
     }
 
+    /// Gets the minimum value stored in the pool.
+    ///
+    /// Returns 0.0 if no values have been added to the pool.
     pub fn min_value(&self) -> f32 {
+        if self.values_added == 0 {
+            return 0.0;
+        }
         unsafe { nv_flip_sys::flip_image_pool_get_min_value(self.inner) }
     }
 
+    /// Gets the maximum value stored in the pool.
+    ///
+    /// Returns 0.0 if no values have been added to the pool.
     pub fn max_value(&self) -> f32 {
+        if self.values_added == 0 {
+            return 0.0;
+        }
         unsafe { nv_flip_sys::flip_image_pool_get_max_value(self.inner) }
     }
 
+    /// Gets the mean value stored in the pool.
+    ///
+    /// Returns 0.0 if no values have been added to the pool.
     pub fn mean(&self) -> f32 {
+        // Avoid div by zero in body.
+        if self.values_added == 0 {
+            return 0.0;
+        }
         unsafe { nv_flip_sys::flip_image_pool_get_mean(self.inner) }
     }
 
+    /// Gets the given weighted percentile [0.0, 1.0] from the pool.
+    ///
+    /// I currently do not understand the difference between this and [`Self::get_percentile`] with weighted = true,
+    /// except that this function uses doubles and doesn't require mutation of internal state.
+    ///
+    /// Returns 0.0 if no values have been added to the pool.
     pub fn get_weighted_percentile(&self, percentile: f64) -> f64 {
+        if self.values_added == 0 {
+            return 0.0;
+        }
         unsafe { nv_flip_sys::flip_image_pool_get_weighted_percentile(self.inner, percentile) }
     }
 
+    /// Get the value of the given percentile [0.0, 1.0] from the pool.
+    ///
+    /// If `weighted` is true, is almost equivalent to [`Self::get_weighted_percentile`].
+    ///
+    /// Returns 0.0 if no values have been added to the pool.
     pub fn get_percentile(&mut self, percentile: f32, weighted: bool) -> f32 {
-        unsafe { nv_flip_sys::flip_image_pool_get_percentile(self.inner, percentile, weighted) }
+        // Avoids a division by zero when bounds checking.
+        if self.values_added == 0 {
+            return 0.0;
+        }
+        // The implementaion doesn't actually do any bounds checking on the percentile,
+        // so we need to do it here, including tracking count of values added.
+        let bounds_percentile =
+            f32::clamp(percentile, 0.0, 1.0 - (self.values_added as f32).recip());
+        // Replicates the indexing behavior of the C++ implementation.
+        debug_assert!(
+            (f32::ceil(bounds_percentile * self.values_added as f32) as usize) < self.values_added
+        );
+        unsafe {
+            nv_flip_sys::flip_image_pool_get_percentile(self.inner, bounds_percentile, weighted)
+        }
     }
 
+    /// Updates the given pool with the contents of the given image.
     pub fn update_with_image(&mut self, image: &FlipImageFloat) {
         unsafe {
             nv_flip_sys::flip_image_pool_update_image(self.inner, image.inner);
         }
+        self.values_added += image.width() as usize * image.height() as usize;
     }
 
+    /// Clears the pool.
     pub fn clear(&mut self) {
         unsafe {
             nv_flip_sys::flip_image_pool_clear(self.inner);
         }
+        self.values_added = 0;
     }
 }
 
@@ -493,6 +595,17 @@ mod tests {
     fn zeroed_init() {
         assert_eq!(FlipImageRgb8::new(10, 10).to_vec(), vec![0u8; 10 * 10 * 3]);
         assert_eq!(FlipImageFloat::new(10, 10).to_vec(), vec![0.0f32; 10 * 10]);
+    }
+
+    #[test]
+    fn zero_size_pool_ops() {
+        let mut pool = FlipPool::new();
+        assert_eq!(pool.min_value(), 0.0);
+        assert_eq!(pool.max_value(), 0.0);
+        assert_eq!(pool.mean(), 0.0);
+        assert_eq!(pool.get_percentile(0.0, false), 0.0);
+        assert_eq!(pool.get_percentile(0.0, true), 0.0);
+        assert_eq!(pool.get_weighted_percentile(0.0), 0.0);
     }
 
     #[test]
@@ -535,7 +648,9 @@ mod tests {
         assert_float_eq!(pool.get_percentile(0.50, true), 0.333241, abs <= TOLERENCE);
         assert_float_eq!(pool.get_percentile(0.75, true), 0.503441, abs <= TOLERENCE);
         assert_float_eq!(pool.min_value(), 0.000000, abs <= TOLERENCE);
+        assert_float_eq!(pool.get_percentile(0.0, true), 0.000000, abs <= 0.001);
         assert_float_eq!(pool.max_value(), 0.983044, abs <= TOLERENCE);
+        assert_float_eq!(pool.get_percentile(1.0, true), 0.983044, abs <= 0.001);
         assert_float_eq!(
             pool.get_weighted_percentile(0.25),
             0.184586,
@@ -553,7 +668,16 @@ mod tests {
         );
 
         let histogram = pool.histogram();
-        assert_float_eq!(histogram.min_value(), 0.0, abs <= TOLERENCE);
-        assert_float_eq!(histogram.max_value(), 1.0, abs <= TOLERENCE);
+        assert_float_eq!(histogram.minimum_allowed_value(), 0.0, abs <= TOLERENCE);
+        assert_float_eq!(histogram.maximum_allowed_value(), 1.0, abs <= TOLERENCE);
+        drop(histogram);
+
+        // Absurd values, trying to edge case the histogram
+        pool.get_percentile(-10000.0, false);
+        pool.get_percentile(-10000.0, true);
+        pool.get_percentile(10000.0, false);
+        pool.get_percentile(10000.0, true);
+        pool.get_weighted_percentile(-10000.0);
+        pool.get_weighted_percentile(10000.0);
     }
 }

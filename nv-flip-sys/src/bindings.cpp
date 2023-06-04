@@ -115,7 +115,7 @@ extern "C" {
     size_t flip_image_histogram_ref_get_bucket_id_max(FlipImageHistogramRef const* histogram) {
         return histogram->inner.getBucketIdMax();
     }
-    float flip_image_histogram_ref_get_bucket_value(FlipImageHistogramRef const* histogram, size_t bucket_id) {
+    size_t flip_image_histogram_ref_get_bucket_value(FlipImageHistogramRef const* histogram, size_t bucket_id) {
         return histogram->inner.getBucketValue(bucket_id);
     }
     size_t flip_image_histogram_ref_size(FlipImageHistogramRef const* histogram) {
@@ -126,9 +126,6 @@ extern "C" {
     }
     float flip_image_histogram_ref_get_max_value(FlipImageHistogramRef const* histogram) {
         return histogram->inner.getMaxValue();
-    }
-    float flip_image_histogram_ref_bucket_step(FlipImageHistogramRef const* histogram) {
-        return histogram->inner.getBucketStep();
     }
     void flip_image_histogram_ref_clear(FlipImageHistogramRef* histogram) {
         histogram->inner.clear();

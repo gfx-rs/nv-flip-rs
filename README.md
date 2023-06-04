@@ -79,6 +79,9 @@ The binding and rust interop code is tri-licensed under MIT, Apache-2.0, and ZLi
 
 The ꟻLIP library itself is licensed under the BSD-3-Clause license.
 
+The example images used are licensed under the [Unsplash License].
+
 [ꟻLIP]: https://github.com/NVlabs/flip
+[Unsplash License]: https://unsplash.com/license
 
 License: MIT OR Apache-2.0 OR Zlib

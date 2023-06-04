@@ -32,11 +32,10 @@ extern "C" {
     size_t flip_image_histogram_ref_get_bucket_size(FlipImageHistogramRef const* histogram);
     size_t flip_image_histogram_ref_get_bucket_id_min(FlipImageHistogramRef const* histogram);
     size_t flip_image_histogram_ref_get_bucket_id_max(FlipImageHistogramRef const* histogram);
-    float flip_image_histogram_ref_get_bucket_value(FlipImageHistogramRef const* histogram, size_t bucket_id);
+    size_t flip_image_histogram_ref_get_bucket_value(FlipImageHistogramRef const* histogram, size_t bucket_id);
     size_t flip_image_histogram_ref_size(FlipImageHistogramRef const* histogram);
     float flip_image_histogram_ref_get_min_value(FlipImageHistogramRef const* histogram);
     float flip_image_histogram_ref_get_max_value(FlipImageHistogramRef const* histogram);
-    float flip_image_histogram_ref_bucket_step(FlipImageHistogramRef const* histogram);
     void flip_image_histogram_ref_clear(FlipImageHistogramRef* histogram);
     void flip_image_histogram_ref_resize(FlipImageHistogramRef* histogram, size_t buckets);
     size_t flip_image_histogram_ref_value_bucket_id(FlipImageHistogramRef* histogram, float buckets);

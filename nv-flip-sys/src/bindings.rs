@@ -89,7 +89,7 @@ extern "C" {
     pub fn flip_image_histogram_ref_get_bucket_value(
         histogram: *const FlipImageHistogramRef,
         bucket_id: usize,
-    ) -> f32;
+    ) -> usize;
 }
 extern "C" {
     pub fn flip_image_histogram_ref_size(histogram: *const FlipImageHistogramRef) -> usize;
@@ -99,9 +99,6 @@ extern "C" {
 }
 extern "C" {
     pub fn flip_image_histogram_ref_get_max_value(histogram: *const FlipImageHistogramRef) -> f32;
-}
-extern "C" {
-    pub fn flip_image_histogram_ref_bucket_step(histogram: *const FlipImageHistogramRef) -> f32;
 }
 extern "C" {
     pub fn flip_image_histogram_ref_clear(histogram: *mut FlipImageHistogramRef);
