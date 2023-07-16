@@ -343,6 +343,10 @@ pub struct FlipHistogram<'a> {
     inner: *mut nv_flip_sys::FlipImageHistogramRef,
     _phantom: PhantomData<&'a ()>,
 }
+
+unsafe impl Send for FlipHistogram<'_> {}
+unsafe impl Sync for FlipHistogram<'_> {}
+
 impl<'a> FlipHistogram<'a> {
     /// Returns the difference between the maximum and minimum bucket values.
     pub fn bucket_size(&self) -> usize {
@@ -462,6 +466,9 @@ pub struct FlipPool {
     inner: *mut nv_flip_sys::FlipImagePool,
     values_added: usize,
 }
+
+unsafe impl Send for FlipPool {}
+unsafe impl Sync for FlipPool {}
 
 impl FlipPool {
     /// Creates a new pool with 100 buckets.
