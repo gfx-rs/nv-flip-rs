@@ -295,6 +295,8 @@ pub fn magma_lut() -> FlipImageRgb8 {
 ///
 /// The images must be the same size.
 ///
+/// Images are assumed to be in the sRGB color space.
+///
 /// Returns an error map image, where each pixel represents the error between the two images
 /// at that location between 0 and 1.
 ///
