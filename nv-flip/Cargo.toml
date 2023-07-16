@@ -1,6 +1,6 @@
 [package]
 name = "nv-flip"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 description = "High-Level bindings to Nvidia Labs's ꟻLIP image comparison and error visualization library"
 readme = "../README.md"
