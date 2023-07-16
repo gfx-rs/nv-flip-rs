@@ -22,6 +22,16 @@ Per Keep a Changelog there are 6 main categories of changes:
 
 ## Unreleased
 
+## v0.1.2
+
+Release 2023-07-15
+
+#### Added
+- Documentation on the color space FLIP works in.
+
+#### Fixed
+- Added `Send`/`Sync` for `FlipPool` and `FlipHistogram`
+
 ## v0.1.1
 
 Release 2023-06-04
