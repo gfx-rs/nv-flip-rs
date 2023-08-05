@@ -84,4 +84,4 @@ The example images used are licensed under the [Unsplash License].
 [ꟻLIP]: https://github.com/NVlabs/flip
 [Unsplash License]: https://unsplash.com/license
 
-License: MIT OR Apache-2.0 OR Zlib
+License: (MIT OR Apache-2.0 OR Zlib) AND BSD-3-Clause
