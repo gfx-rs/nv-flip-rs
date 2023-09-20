@@ -11,6 +11,10 @@ differences, FLIP's comparison can be more meaningful than a simple pixel-wise c
 In order to keep a small dependency closure, this crate does not depend on `image`,
 but interop is simple.
 
+## Windows
+
+The FLIP library requires MSVC 2022 or newer to compile.
+
 ## Example
 
 ```rust
