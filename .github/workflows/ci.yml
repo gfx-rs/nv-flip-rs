@@ -6,6 +6,7 @@ on:
 
 env:
   RUSTDOCFLAGS: -Dwarnings
+  CI_RUST_VERSION: "1.85.0"
 
 jobs:
   check-msrv:
@@ -15,15 +16,15 @@ jobs:
         include:
           # Windows
           - name: Windows x86_64
-            os: windows-2022
+            os: windows-2025
 
           # MacOS
           - name: MacOS x86_64
-            os: macos-12
+            os: macos-15
 
           # Linux
           - name: Linux x86_64
-            os: ubuntu-22.04
+            os: ubuntu-24.04
 
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
@@ -32,7 +33,7 @@ jobs:
       - name: checkout repo
         uses: actions/checkout@v3
         with:
-            submodules: true
+          submodules: true
 
       - name: caching
         uses: Swatinem/rust-cache@v2
@@ -54,5 +55,3 @@ jobs:
       - name: doc
         shell: bash
         run: cargo doc
-
-

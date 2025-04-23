@@ -349,7 +349,7 @@ pub struct FlipHistogram<'a> {
 unsafe impl Send for FlipHistogram<'_> {}
 unsafe impl Sync for FlipHistogram<'_> {}
 
-impl<'a> FlipHistogram<'a> {
+impl FlipHistogram<'_> {
     /// Returns the difference between the maximum and minimum bucket values.
     pub fn bucket_size(&self) -> usize {
         unsafe { nv_flip_sys::flip_image_histogram_ref_get_bucket_size(self.inner) }
