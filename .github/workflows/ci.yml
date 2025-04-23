@@ -35,6 +35,15 @@ jobs:
         with:
           submodules: true
 
+      - name: install rust
+        shell: bash
+        run: |
+          set -e
+
+          rustup toolchain install ${{ env.CI_RUST_VERSION }} --no-self-update --profile=minimal --component clippy
+          rustup override set ${{ env.CI_RUST_VERSION }}
+          cargo -V
+
       - name: caching
         uses: Swatinem/rust-cache@v2
         with:
