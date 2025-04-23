@@ -6,7 +6,7 @@ on:
 
 env:
   RUSTDOCFLAGS: -Dwarnings
-  CI_RUST_VERSION: "1.85.0"
+  CI_RUST_VERSION: "1.84.0"
 
 jobs:
   check-msrv:
@@ -26,7 +26,7 @@ jobs:
           - name: Linux x86_64
             os: ubuntu-24.04
 
-    name: ${{ matrix.name }}
+    name: MSRV ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
 
     steps:
