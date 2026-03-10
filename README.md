@@ -58,7 +58,7 @@ let mut pool = nv_flip::FlipPool::from_image(&error_map);
 //
 // The paper's writers recommend that, if you are to use a single number to
 // represent the error, they recommend the mean.
-println!("Mean: {}", pool.mean());
+println!("Mean: {}", pool.mean()); // 0.0 (min) = "no difference", 1.0 (max) = "completely different"
 println!("Weighted median: {}", pool.get_percentile(0.5, true));
 println!("1st weighted quartile: {}", pool.get_percentile(0.25, true));
 println!("3rd weighted quartile: {}", pool.get_percentile(0.75, true));
