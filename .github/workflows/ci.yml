@@ -12,7 +12,7 @@ on:
 
 env:
   RUSTDOCFLAGS: -Dwarnings
-  CI_RUST_VERSION: "1.84.0"
+  CI_RUST_VERSION: "1.94.0"
 
 jobs:
   check-msrv:
