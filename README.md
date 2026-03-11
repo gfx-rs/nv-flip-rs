@@ -73,6 +73,10 @@ The result of this example looks like this:
 |:---------:|:---------:|:---------:|
 | ![comp](https://raw.githubusercontent.com/gfx-rs/nv-flip-rs/trunk/etc/tree-ref.png) | ![comp](https://raw.githubusercontent.com/gfx-rs/nv-flip-rs/trunk/etc/tree-test.png)  | ![comp](https://raw.githubusercontent.com/gfx-rs/nv-flip-rs/trunk/etc/tree-comparison-cli.png) |
 
+## Minimum Supported Rust Version
+
+The minimum supported Rust version (MSRV) for this crate is **1.64**. MSRV bumps are considered breaking changes and will be accompanied by a minor version bump.
+
 ## License
 
 The binding and rust interop code is tri-licensed under MIT, Apache-2.0, and ZLib.

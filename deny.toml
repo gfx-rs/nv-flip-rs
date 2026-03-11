@@ -1,0 +1,18 @@
+[licenses]
+allow = [
+    "Apache-2.0",
+    "BSD-3-Clause",
+    "MIT",
+    "Zlib",
+]
+
+[bans]
+multiple-versions = "deny"
+skip = []
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "allow"
+
+[advisories]
+ignore = []

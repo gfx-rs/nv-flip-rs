@@ -1,13 +1,14 @@
 [package]
 name = "nv-flip"
 version = "0.1.2"
-edition = "2021"
+edition.workspace = true
+rust-version.workspace = true
 description = "High-Level bindings to Nvidia Labs's ꟻLIP image comparison and error visualization library"
 readme = "../README.md"
-repository = "https://github.com/gfx-rs/nv-flip-rs"
+repository.workspace = true
 license = "MIT OR Apache-2.0 OR Zlib"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+keywords = ["flip", "image-comparison", "nvidia", "error-visualization", "perceptual"]
+categories = ["graphics", "multimedia::images", "visualization"]
 
 [dependencies]
 nv-flip-sys = { version = "0.1.0", path = "../nv-flip-sys" }
