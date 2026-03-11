@@ -4,3 +4,9 @@ members = [
     "nv-flip",
     "nv-flip-sys"
 ]
+
+[workspace.package]
+edition = "2021"
+rust-version = "1.64"
+repository = "https://github.com/gfx-rs/nv-flip-rs"
+readme = "README.md"

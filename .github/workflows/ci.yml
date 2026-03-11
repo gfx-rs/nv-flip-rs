@@ -11,8 +11,10 @@ on:
   pull_request:
 
 env:
+  RUSTFLAGS: -Dwarnings
   RUSTDOCFLAGS: -Dwarnings
   CI_RUST_VERSION: "1.94.0"
+  CI_RUST_MSRV: "1.64.0"
 
 jobs:
   check-msrv:
@@ -25,14 +27,14 @@ jobs:
             os: windows-2025
 
           # MacOS
-          - name: MacOS x86_64
+          - name: MacOS aarch64
             os: macos-15
 
           # Linux
           - name: Linux x86_64
             os: ubuntu-24.04
 
-    name: MSRV ${{ matrix.name }}
+    name: CI ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -42,31 +44,121 @@ jobs:
           submodules: true
 
       - name: install rust
-        shell: bash
-        run: |
-          set -e
-
-          rustup toolchain install ${{ env.CI_RUST_VERSION }} --no-self-update --profile=minimal --component clippy,rustfmt
-          rustup override set ${{ env.CI_RUST_VERSION }}
-          cargo -V
+        uses: cwfitzgerald/repo-common/.github/actions/install-rust@trunk
+        with:
+          version: ${{ env.CI_RUST_VERSION }}
+          components: clippy
 
       - name: caching
         uses: Swatinem/rust-cache@v2
         with:
-          key: ${{ matrix.os }}
+          key: ci-${{ matrix.os }}
+
+      - name: install cargo-nextest
+        uses: taiki-e/install-action@cargo-nextest
+
+      - name: clippy
+        shell: bash
+        run: cargo clippy --all-features
+
+      - name: build
+        shell: bash
+        run: cargo build
+
+      - name: doc
+        shell: bash
+        run: cargo doc --no-deps
+
+      - name: test
+        shell: bash
+        run: cargo nextest run
+
+      - name: doctest
+        shell: bash
+        run: cargo test --doc
+
+  format:
+    name: Format
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v6
+
+      - name: install rust
+        uses: cwfitzgerald/repo-common/.github/actions/install-rust@trunk
+        with:
+          version: ${{ env.CI_RUST_VERSION }}
+          components: rustfmt
 
       - name: fmt
         shell: bash
         run: cargo fmt --check
 
-      - name: clippy
-        shell: bash
-        run: cargo clippy -- -D warnings
+  deny:
+    name: Deny
+    runs-on: ubuntu-24.04
 
-      - name: test
-        shell: bash
-        run: cargo test
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v6
 
-      - name: doc
+      - name: install rust
+        uses: cwfitzgerald/repo-common/.github/actions/install-rust@trunk
+        with:
+          version: ${{ env.CI_RUST_VERSION }}
+
+      - name: install cargo-deny
+        uses: taiki-e/install-action@cargo-deny
+
+      - name: deny
         shell: bash
-        run: cargo doc
+        run: cargo deny --all-features check
+
+  msrv:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Windows
+          - name: Windows x86_64
+            os: windows-2025
+
+          # MacOS
+          - name: MacOS aarch64
+            os: macos-15
+
+          # Linux
+          - name: Linux x86_64
+            os: ubuntu-24.04
+
+    name: MSRV ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+
+    env:
+      RUSTFLAGS: ""
+      RUSTDOCFLAGS: ""
+
+    steps:
+      - name: checkout repo
+        uses: actions/checkout@v6
+        with:
+          submodules: true
+
+      - name: install rust
+        uses: cwfitzgerald/repo-common/.github/actions/install-rust@trunk
+        with:
+          version: ${{ env.CI_RUST_MSRV }}
+
+      - name: caching
+        uses: Swatinem/rust-cache@v2
+        with:
+          key: msrv-${{ matrix.os }}
+
+      - name: check default features
+        shell: bash
+        run: cargo check
+
+      - name: check no default features
+        shell: bash
+        run: cargo check --no-default-features

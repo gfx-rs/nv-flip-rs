@@ -14,11 +14,12 @@ Per Keep a Changelog there are 6 main categories of changes:
 - Fixed
 - Security
 
-## Versions
+#### Table of Contents
 
 - [Unreleased](#unreleased)
+- [v0.1.2](#v012)
+- [v0.1.1](#v011)
 - [v0.1.0](#v010)
-- [Diffs](#diffs)
 
 ## Unreleased
 
@@ -48,4 +49,6 @@ Released 2023-06-03
 
 ## Diffs
 
-- [Unreleased](https://github.com/gfx-rs/nv-flip-rs/compare/v0.1.0...HEAD)
+- [Unreleased](https://github.com/gfx-rs/nv-flip-rs/compare/v0.1.2...HEAD)
+- [v0.1.2](https://github.com/gfx-rs/nv-flip-rs/compare/v0.1.1...v0.1.2)
+- [v0.1.1](https://github.com/gfx-rs/nv-flip-rs/compare/v0.1.0...v0.1.1)

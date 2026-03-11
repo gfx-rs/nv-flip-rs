@@ -2,11 +2,14 @@
 name = "nv-flip-sys"
 version = "0.1.1"
 authors = ["the gfx-rs developers"]
-edition = "2021"
+edition.workspace = true
+rust-version.workspace = true
 description = "FFI bindings to Nvidia Labs's ꟻLIP image comparison and error visualization library"
 readme = "../README.md"
-repository = "https://github.com/gfx-rs/nv-flip-rs"
+repository.workspace = true
 license = "(MIT OR Apache-2.0 OR Zlib) AND BSD-3-Clause"
+keywords = ["flip", "image-comparison", "nvidia", "ffi", "perceptual"]
+categories = ["external-ffi-bindings", "graphics"]
 links = "nv-flip"
 include = [
     "src/",
